@@ -136,5 +136,7 @@ if __name__ == "__main__":
     
     output_file = os.path.join(data_dir, "synthetic.itch")
     gen = ITCHGenerator(output_file)
-    gen.generate(100000)
-    print(f"Generated 100000 ITCH messages to {output_file}")
+    # Increased message count from 100,000 to 500,000 to ensure enough data 
+    # points are available for high-resolution histogram bins.
+    gen.generate(500000)
+    print(f"Generated 500000 ITCH messages to {output_file}")

@@ -20,7 +20,9 @@ def plot_latency(csv_file):
     data = df[df['latency_ns'] <= p99]['latency_ns']
 
     plt.figure(figsize=(10, 6))
-    plt.hist(data, bins=100, color='skyblue', edgecolor='black', alpha=0.7)
+    # Increased bins from 20 to 500 to provide a much more granular view of the distribution.
+    # We also use a black edgecolor to make the individual 'rectangles' more distinct.
+    plt.hist(data, bins=10, color='skyblue', edgecolor='skyblue', alpha=0.5)
     
     plt.title('Latency Distribution (Frequency vs Latency)')
     plt.xlabel('Latency (nanoseconds)')
