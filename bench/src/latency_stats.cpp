@@ -4,12 +4,25 @@
 #include <numeric>
 #include <iomanip>
 #include <cmath>
+#include <fstream>
 
 namespace engine {
 namespace bench {
 
 void LatencyStats::add_sample(uint64_t nanoseconds) {
     latencies.push_back(nanoseconds);
+}
+
+void LatencyStats::dump_csv(const std::string& filename) {
+    std::ofstream out(filename);
+    if (!out) {
+        std::cerr << "Failed to open " << filename << " for writing latency data." << std::endl;
+        return;
+    }
+    out << "latency_ns\n";
+    for (auto lat : latencies) {
+        out << lat << "\n";
+    }
 }
 
 void LatencyStats::report() {

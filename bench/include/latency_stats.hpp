@@ -14,6 +14,7 @@ class LatencyStats {
 public:
     void add_sample(uint64_t nanoseconds);
     void report();
+    void dump_csv(const std::string& filename);
 
     // For testing/internal use
     size_t sample_count() const { return latencies.size(); }

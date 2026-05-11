@@ -73,6 +73,7 @@ int main(int argc, char* argv[]) {
     }
 
     stats.report();
+    stats.dump_csv("latency_results.csv");
 
     munmap(addr, file_size);
     close(fd);
