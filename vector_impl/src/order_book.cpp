@@ -4,7 +4,7 @@ namespace engine {
 
 PriceLevel& OrderBook::get_or_create_level(std::vector<PriceEntry>& side, Price price, bool is_bid) {
     if (!side.empty()) {
-        if (side.back().price == price) [[likely]] {
+        if (side.back().price == price) {
             return side.back().level;
         }
         

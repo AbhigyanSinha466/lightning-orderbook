@@ -1,5 +1,4 @@
 #include "price_level.hpp"
-#include <numeric>
 
 namespace engine {
 
