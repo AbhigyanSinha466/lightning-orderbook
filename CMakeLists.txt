@@ -1,34 +1,46 @@
 cmake_minimum_required(VERSION 3.15)
 project(lightning-orderbook VERSION 0.1.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Common flags
 add_compile_options(-Wall -Wextra -Wpedantic)
 
-# 1. engine_core - static library
-file(GLOB_RECURSE ENGINE_CORE_SOURCES src/*.cpp)
-add_library(engine_core STATIC ${ENGINE_CORE_SOURCES})
-target_include_directories(engine_core PUBLIC include)
+# --- 1. ENGINE CORE (LIST IMPLEMENTATION) ---
+file(GLOB_RECURSE ENGINE_CORE_LIST_SOURCES list_impl/src/*.cpp)
+add_library(engine_core_list STATIC ${ENGINE_CORE_LIST_SOURCES})
+target_include_directories(engine_core_list PUBLIC list_impl/include)
 
-# 2. itch_parser - static library
+# --- 2. ENGINE CORE (VECTOR IMPLEMENTATION) ---
+file(GLOB_RECURSE ENGINE_CORE_VECTOR_SOURCES vector_impl/src/*.cpp)
+add_library(engine_core_vector STATIC ${ENGINE_CORE_VECTOR_SOURCES})
+target_include_directories(engine_core_vector PUBLIC vector_impl/include)
+
+# --- 3. ITCH PARSER ---
+# The parser is implementation-agnostic as types.hpp is identical
 file(GLOB_RECURSE ITCH_PARSER_SOURCES itch/src/*.cpp)
 add_library(itch_parser STATIC ${ITCH_PARSER_SOURCES})
 target_include_directories(itch_parser PUBLIC itch/include)
-target_link_libraries(itch_parser PRIVATE engine_core)
+target_link_libraries(itch_parser PRIVATE engine_core_list)
 
-# 3. bench - executable
+# --- 4. BENCHMARKS ---
 file(GLOB_RECURSE BENCH_SOURCES bench/src/*.cpp)
-add_executable(bench ${BENCH_SOURCES})
-target_include_directories(bench PRIVATE bench/include)
-target_link_libraries(bench PRIVATE itch_parser engine_core)
 
-# Performance flags for bench
-target_compile_options(bench PRIVATE -O3 -march=native -fno-exceptions -fno-rtti)
+# Bench for List Implementation
+add_executable(bench_list ${BENCH_SOURCES})
+target_include_directories(bench_list PRIVATE bench/include list_impl/include)
+target_link_libraries(bench_list PRIVATE itch_parser engine_core_list)
+target_compile_options(bench_list PRIVATE -O3 -march=native -fno-exceptions -fno-rtti)
 
-# 4. tests - executable using Catch2
+# Bench for Vector Implementation
+add_executable(bench_vector ${BENCH_SOURCES})
+target_include_directories(bench_vector PRIVATE bench/include vector_impl/include)
+target_link_libraries(bench_vector PRIVATE itch_parser engine_core_vector)
+target_compile_options(bench_vector PRIVATE -O3 -march=native -fno-exceptions -fno-rtti)
+
+# --- 5. TESTS ---
 include(FetchContent)
 FetchContent_Declare(
   Catch2
@@ -39,5 +51,5 @@ FetchContent_MakeAvailable(Catch2)
 
 file(GLOB_RECURSE TEST_SOURCES tests/*.cpp)
 add_executable(tests ${TEST_SOURCES} bench/src/latency_stats.cpp)
-target_include_directories(tests PRIVATE bench/include)
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain itch_parser engine_core)
+target_include_directories(tests PRIVATE bench/include list_impl/include)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain itch_parser engine_core_list)

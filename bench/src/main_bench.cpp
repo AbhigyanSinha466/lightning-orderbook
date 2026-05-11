@@ -12,11 +12,12 @@
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <itch_binary_file>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <itch_binary_file> [output_csv]" << std::endl;
         return 1;
     }
 
     const char* filename = argv[1];
+    const char* output_csv = (argc > 2) ? argv[2] : "latency_results.csv";
     int fd = open(filename, O_RDONLY);
     if (fd == -1) {
         perror("open");
@@ -73,7 +74,7 @@ int main(int argc, char* argv[]) {
     }
 
     stats.report();
-    stats.dump_csv("latency_results.csv");
+    stats.dump_csv(output_csv);
 
     munmap(addr, file_size);
     close(fd);

@@ -14,16 +14,10 @@ T read_be(const uint8_t* data, size_t size = sizeof(T)) {
     return val;
 }
 
-std::string parse_symbol(const uint8_t* data) {
-    std::string s(reinterpret_cast<const char*>(data), 8);
-    // Strip trailing spaces
-    size_t last = s.find_last_not_of(' ');
-    if (last != std::string::npos) {
-        s.erase(last + 1);
-    } else {
-        s.clear();
-    }
-    return s;
+uint64_t parse_symbol(const uint8_t* data) {
+    uint64_t val = 0;
+    std::memcpy(&val, data, 8);
+    return val;
 }
 } // namespace
 

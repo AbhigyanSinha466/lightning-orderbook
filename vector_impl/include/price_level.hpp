@@ -11,16 +11,15 @@ namespace engine {
  */
 class PriceLevel {
 public:
+    PriceLevel() : head(nullptr), tail(nullptr) {}
+
     /**
      * @brief Adds an order to the end of the level (time priority).
-     * Sets the order's level_it to its position in the list.
-     * @param o Pointer to the order to add.
      */
     void add_order(Order* o);
 
     /**
-     * @brief Removes an order from the level using its cached iterator.
-     * @param o Pointer to the order to remove.
+     * @brief Removes an order from the level.
      */
     void remove_order(Order* o);
 
@@ -33,12 +32,12 @@ public:
     /**
      * @brief Checks if there are no orders in this level.
      */
-    bool is_empty() const;
+    bool is_empty() const { return head == nullptr; }
 
     /**
      * @brief Returns the first (oldest) order in the level.
      */
-    Order* front() const;
+    Order* front() const { return head; }
 
     /**
      * @brief Removes the first order from the level.
@@ -46,7 +45,8 @@ public:
     void pop_front();
 
 private:
-    std::list<Order*> orders;
+    Order* head;
+    Order* tail;
 };
 
 } // namespace engine
