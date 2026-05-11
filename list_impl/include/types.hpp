@@ -22,9 +22,9 @@ using Qty = uint32_t;
 using OrderId = uint64_t;
 
 /**
- * @brief Instrument symbol bit-packed into 8 bytes.
+ * @brief Instrument symbol. Currently std::string, might be optimized later.
  */
-using Symbol = uint64_t;
+using Symbol = std::string;
 
 /**
  * @brief Nanoseconds since midnight.

@@ -19,10 +19,10 @@ struct Order {
     Timestamp timestamp;
 
     /**
-     * @brief Pointers for intrusive doubly-linked list in PriceLevel.
+     * @brief Iterator to the order's position in a PriceLevel's list.
+     * Cached to allow O(1) removal from the PriceLevel.
      */
-    Order* next = nullptr;
-    Order* prev = nullptr;
+    std::list<Order*>::iterator level_it;
 
     Order(OrderId id, Symbol symbol, Side side, OrderType type, Price price, Qty quantity, Timestamp timestamp)
         : id(id), symbol(std::move(symbol)), side(side), type(type), price(price), quantity(quantity), timestamp(timestamp) {}

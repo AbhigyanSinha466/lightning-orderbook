@@ -27,10 +27,10 @@ def compare_latency(csv_files):
 
         # Calculate bins with 10ns width
         max_val = int(p999)
-        bin_edges = np.arange(0, max_val + 10, 10)
+        bin_edges = np.arange(0, max_val + 20, 20)
 
         # Plot overlapping histograms (rectangles with no space)
-        plt.hist(filtered_data, bins=bin_edges, alpha=0.5, label=label, edgecolor='black', linewidth=0.5)
+        plt.hist(filtered_data, bins=bin_edges, alpha=0.5, label=label, edgecolor=None, linewidth=0)
         
         print(f"Stats for {label}:")
         print(f"  P50: {data.median():.2f} ns")
