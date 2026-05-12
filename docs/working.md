@@ -33,10 +33,11 @@ This module forms the `itch_parser` static library. It is implementation-agnosti
 - **`itch_parser.hpp` / `itch_parser.cpp`**: A callback-based binary parser for NASDAQ ITCH 5.0. Handles big-endian to host-endian conversion and skip logic for unsupported messages.
 
 ### Benchmark Harness (`bench/`)
-The source for performance measurement. The build system creates two executables: `bench_list` and `bench_vector`.
-- **`latency_stats.hpp` / `latency_stats.cpp`**: Collects nanosecond-precision samples and computes percentiles (P50, P99, etc.).
-- **`replay_harness.hpp` / `replay_harness.cpp`**: Bridges the parser and engine, measuring time taken for each engine call.
-- **`main_bench.cpp`**: Entry point. Memory-maps the input ITCH file and triggers the replay.
+The source for high-precision performance measurement. The build system creates two executables: `bench_list` and `bench_vector`.
+- **`cycle_clock.hpp` / `cycle_clock.cpp`**: Interfaces with hardware performance counters (using `kperf` on Apple Silicon) to measure exact CPU clock cycles spent on code execution. Includes a runtime self-calibration routine to calculate frequency (GHz).
+- **`latency_stats.hpp` / `latency_stats.cpp`**: Collects cycle-count samples and computes percentiles. Dumps data in both raw cycles and calibrated nanoseconds.
+- **`replay_harness.hpp` / `replay_harness.cpp`**: Bridges the parser and engine, measuring the precise cycle delta for each message processed.
+- **`main_bench.cpp`**: Entry point. Calibrates the clock, memory-maps the ITCH file, and triggers the replay. Requires `sudo` on macOS for hardware counter access.
 
 ### Tests (`tests/`)
 - **`test_*.cpp`**: Unit tests for the modules using Catch2. (Currently links with `engine_core_list` by default in CMake).
@@ -70,15 +71,19 @@ After building, execute the test suite:
 ```
 
 ### Running the Benchmarks
-To replay an ITCH binary file and see performance stats, run either executable:
+To replay an ITCH binary file and see performance stats, run either executable with `sudo` (required for hardware counters):
 ```bash
 # Test the list implementation
-./build/bench_list <path_to_itch_file>
+sudo ./build/bench_list data/synthetic.itch
 
 # Test the vector implementation
-./build/bench_vector <path_to_itch_file>
+sudo ./build/bench_vector data/synthetic.itch
 ```
-Alternatively, use the scripts in `scripts/` to automate comparisons.
+Alternatively, use the automated script which handles building, data generation, and plotting:
+```bash
+./scripts/run_comparison.sh
+```
+The comparison script will generate high-resolution plots (`comparison_results.png`) with 300 bins, locked to a 1500ns x-axis for consistent visual analysis.
 
 ### Cleaning Build Artifacts
 ```bash

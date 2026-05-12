@@ -50,6 +50,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 file(GLOB_RECURSE TEST_SOURCES tests/*.cpp)
-add_executable(tests ${TEST_SOURCES} bench/src/latency_stats.cpp)
+add_executable(tests ${TEST_SOURCES} bench/src/latency_stats.cpp bench/src/cycle_clock.cpp)
 target_include_directories(tests PRIVATE bench/include list_impl/include)
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain itch_parser engine_core_list)

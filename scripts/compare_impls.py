@@ -22,15 +22,24 @@ def compare_latency(csv_files):
         data = df['latency_ns']
         
         # Filter extreme outliers for better visualization (e.g., above P99.9)
-        p999 = data.quantile(0.999)
-        filtered_data = data[data <= p999]
+        if data.empty:
+            print(f"Warning: {csv_file} is empty. Skipping.")
+            continue
 
-        # Calculate bins with 10ns width
-        max_val = int(p999)
-        bin_edges = np.arange(0, max_val + 20, 20)
+        # Filter data to only include up to 1500ns for the plot
+        filtered_data = data[data <= 1500]
+
+        # Calculate bins covering exactly 0 to 1500ns
+        bin_edges = np.linspace(0, 1500, 300)
 
         # Plot overlapping histograms (rectangles with no space)
-        plt.hist(filtered_data, bins=bin_edges, alpha=0.5, label=label, edgecolor=None, linewidth=0)
+        n, bins, patches = plt.hist(filtered_data, bins=bin_edges, alpha=0.5, label=label,
+         edgecolor=None, linewidth=0)
+        color = patches[0].get_facecolor()
+
+        # Add median line for this implementation
+        median = data.median()
+        plt.axvline(median, color=color, linestyle='--', linewidth=1.5, label=f'{label} Median: {median:.1f}ns')
         
         print(f"Stats for {label}:")
         print(f"  P50: {data.median():.2f} ns")
@@ -38,8 +47,9 @@ def compare_latency(csv_files):
         print(f"  P99: {data.quantile(0.99):.2f} ns")
         print(f"  Avg: {data.mean():.2f} ns")
 
-    plt.title('OrderBook Latency Distribution')
+    plt.title('OrderBook Latency Distribution (Nanoseconds)')
     plt.xlabel('Latency (ns)')
+    plt.xlim(left=0)
     plt.ylabel('Frequency')
     plt.grid(True, which="both", ls="-", alpha=0.5)
     plt.legend()

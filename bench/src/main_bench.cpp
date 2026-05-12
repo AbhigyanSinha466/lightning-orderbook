@@ -2,6 +2,7 @@
 #include "itch_parser.hpp"
 #include "replay_harness.hpp"
 #include "latency_stats.hpp"
+#include "cycle_clock.hpp"
 #include <iostream>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -12,12 +13,24 @@
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <itch_binary_file> [output_csv]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <itch_binary_file> [output_csv_file]" << std::endl;
         return 1;
     }
 
+    std::string csv_filename = "latency_results.csv";
+    if (argc >= 3) {
+        csv_filename = argv[2];
+    }
+
+    if (!engine::bench::CycleClock::init()) {
+        std::cerr << "ERROR: Failed to initialize CycleClock. Did you run with sudo?" << std::endl;
+        return 1;
+    }
+
+    std::cerr << "Calibrating CycleClock..." << std::endl;
+    engine::bench::CycleClock::calibrate();
+
     const char* filename = argv[1];
-    const char* output_csv = (argc > 2) ? argv[2] : "latency_results.csv";
     int fd = open(filename, O_RDONLY);
     if (fd == -1) {
         perror("open");
@@ -74,7 +87,7 @@ int main(int argc, char* argv[]) {
     }
 
     stats.report();
-    stats.dump_csv(output_csv);
+    stats.dump_csv(csv_filename);
 
     munmap(addr, file_size);
     close(fd);

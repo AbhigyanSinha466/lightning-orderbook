@@ -15,16 +15,16 @@ def plot_latency(csv_file):
         print("Error: CSV file is empty.")
         return
 
-    # Filter outliers (optional, e.g., keep 99th percentile to keep plot readable)
-    p99 = df['latency_ns'].quantile(0.99)
-    data = df[df['latency_ns'] <= p99]['latency_ns']
+    # Filter data to only include up to 1500ns for the plot
+    data = df[df['latency_ns'] <= 1500]['latency_ns']
 
     plt.figure(figsize=(10, 6))
-    plt.hist(data, bins=100, color='skyblue', edgecolor='black', alpha=0.7)
+    plt.hist(data, bins=300, color='skyblue', edgecolor='black', alpha=0.7)
     
-    plt.title('Latency Distribution (Frequency vs Latency)')
+    plt.title('Latency Distribution (Frequency vs Nanoseconds)')
     plt.xlabel('Latency (nanoseconds)')
     plt.ylabel('Frequency')
+    plt.xlim(0, 1500)
     plt.grid(axis='y', linestyle='--', alpha=0.7)
 
     # Add percentile vertical lines
