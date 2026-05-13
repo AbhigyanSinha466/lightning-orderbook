@@ -30,6 +30,12 @@ public:
     Qty total_quantity() const { return cumulative_qty; }
 
     /**
+     * @brief Decrements the cumulative quantity of the level.
+     * Used when an order at this level is partially or fully filled.
+     */
+    void decrement_cumulative_qty(Qty qty) { cumulative_qty -= qty; }
+
+    /**
      * @brief Checks if there are no orders in this level.
      */
     bool is_empty() const { return head == nullptr; }

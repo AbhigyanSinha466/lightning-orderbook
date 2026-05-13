@@ -58,7 +58,13 @@ void MatchingEngine::reduce_order(OrderId id, Qty cancelled_qty) {
 
     Order* o = it->second;
     if (cancelled_qty >= o->quantity) {
-        cancel_order(id);
+        // Inline cancellation to avoid double lookup
+        auto book_it = books.find(o->symbol);
+        if (book_it != books.end()) {
+            book_it->second.remove_order(o);
+        }
+        order_pool.deallocate(o);
+        order_store.erase(it);
     } else {
         o->quantity -= cancelled_qty;
     }
@@ -70,10 +76,17 @@ void MatchingEngine::replace_order(OrderId old_id, OrderId new_id, Price new_pri
         return;
     }
 
-    Symbol symbol = it->second->symbol;
-    Side side = it->second->side;
+    Order* o = it->second;
+    Symbol symbol = o->symbol;
+    Side side = o->side;
     
-    cancel_order(old_id);
+    // Inline cancellation to avoid double lookup
+    auto book_it = books.find(symbol);
+    if (book_it != books.end()) {
+        book_it->second.remove_order(o);
+    }
+    order_pool.deallocate(o);
+    order_store.erase(it);
     
     auto new_order = std::make_unique<Order>(new_id, symbol, side, OrderType::Limit, new_price, new_qty, new_ts);
     submit_order(std::move(new_order));
@@ -106,6 +119,9 @@ void MatchingEngine::match(Order* aggressive, OrderBook& book) {
         Qty fill_qty = std::min(aggressive->quantity, passive->quantity);
 
         aggressive->quantity -= fill_qty;
+        
+        // Update price level's cumulative quantity
+        level->decrement_cumulative_qty(fill_qty);
         passive->quantity -= fill_qty;
 
         if (on_fill) {
@@ -114,11 +130,9 @@ void MatchingEngine::match(Order* aggressive, OrderBook& book) {
 
         if (passive->quantity == 0) {
             OrderId passive_id = passive->id;
-            Order* to_delete = order_store[passive_id];
-            
-            book.remove_order(to_delete);
+            book.remove_order(passive);
             order_store.erase(passive_id);
-            order_pool.deallocate(to_delete);
+            order_pool.deallocate(passive);
         }
     }
 }
