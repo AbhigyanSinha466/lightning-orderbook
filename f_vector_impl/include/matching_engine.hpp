@@ -4,6 +4,7 @@
 #include <memory>
 #include <functional>
 #include "absl/container/flat_hash_map.h"
+#include "utils/order_pool.hpp"
 
 namespace engine {
 
@@ -24,6 +25,7 @@ public:
      * @brief Submits a new order to the engine.
      * Takes ownership of the order if it rests on the book.
      * @param o Pointer to the order (newly allocated).
+     * @note Now expects a std::unique_ptr for transient orders, but will move them to the pool if they rest.
      */
     void submit_order(std::unique_ptr<Order> o);
 
@@ -51,8 +53,10 @@ private:
      */
     void match(Order* aggressive, OrderBook& book);
 
-    absl::flat_hash_map<OrderId, std::unique_ptr<Order>> order_store;
+    // order_store now stores raw pointers managed by order_pool
+    absl::flat_hash_map<OrderId, Order*> order_store;
     absl::flat_hash_map<Symbol, OrderBook> books;
+    utils::OrderPool order_pool;
     FillCallback on_fill;
 };
 
