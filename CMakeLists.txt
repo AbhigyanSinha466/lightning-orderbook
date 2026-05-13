@@ -22,11 +22,12 @@ target_include_directories(engine_core_vector PUBLIC vector_impl/include)
 file(GLOB_RECURSE ENGINE_CORE_F_VECTOR_SOURCES f_vector_impl/src/*.cpp)
 add_library(engine_core_f_vector STATIC ${ENGINE_CORE_F_VECTOR_SOURCES})
 target_include_directories(engine_core_f_vector PUBLIC f_vector_impl/include)
+target_link_libraries(engine_core_f_vector PUBLIC absl::flat_hash_map)
 
 # --- 3. ITCH PARSER ---
 file(GLOB_RECURSE ITCH_PARSER_SOURCES itch/src/*.cpp)
 
-# We create three parser libraries, one for each implementation
+# We create parser libraries for each implementation
 add_library(itch_parser_list STATIC ${ITCH_PARSER_SOURCES})
 target_include_directories(itch_parser_list PUBLIC itch/include)
 target_link_libraries(itch_parser_list PRIVATE engine_core_list)
@@ -63,12 +64,24 @@ target_compile_options(bench_f_vector PRIVATE -O3 -march=native -fno-exceptions 
 # --- 5. TESTS ---
 enable_testing()
 include(FetchContent)
+
+# Abseil
+FetchContent_Declare(
+  absl
+  GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
+  GIT_TAG 20240116.1
+)
+set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(absl)
+
 FetchContent_Declare(
   Catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
   GIT_TAG v3.4.0
 )
 FetchContent_MakeAvailable(Catch2)
+
+# ... (rest of the file)
 
 # Common test sources and support files
 file(GLOB_RECURSE TEST_SOURCES tests/*.cpp)

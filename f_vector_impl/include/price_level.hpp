@@ -25,9 +25,9 @@ public:
 
     /**
      * @brief Returns the sum of quantities of all orders in this level.
-     * O(n) operation.
+     * O(1) operation (cached).
      */
-    Qty total_quantity() const;
+    Qty total_quantity() const { return cumulative_qty; }
 
     /**
      * @brief Checks if there are no orders in this level.
@@ -47,6 +47,7 @@ public:
 private:
     Order* head;
     Order* tail;
+    Qty cumulative_qty = 0;
 };
 
 } // namespace engine

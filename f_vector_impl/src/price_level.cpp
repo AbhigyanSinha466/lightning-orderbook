@@ -11,6 +11,7 @@ void PriceLevel::add_order(Order* o) {
         head = o;
     }
     tail = o;
+    cumulative_qty += o->quantity;
 }
 
 void PriceLevel::remove_order(Order* o) {
@@ -25,18 +26,9 @@ void PriceLevel::remove_order(Order* o) {
     } else {
         tail = o->prev;
     }
+    cumulative_qty -= o->quantity;
     o->next = nullptr;
     o->prev = nullptr;
-}
-
-Qty PriceLevel::total_quantity() const {
-    Qty sum = 0;
-    Order* curr = head;
-    while (curr) {
-        sum += curr->quantity;
-        curr = curr->next;
-    }
-    return sum;
 }
 
 void PriceLevel::pop_front() {

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "order_book.hpp"
-#include <unordered_map>
 #include <memory>
 #include <functional>
+#include "absl/container/flat_hash_map.h"
 
 namespace engine {
 
@@ -51,8 +51,8 @@ private:
      */
     void match(Order* aggressive, OrderBook& book);
 
-    std::unordered_map<OrderId, std::unique_ptr<Order>> order_store;
-    std::unordered_map<Symbol, OrderBook> books;
+    absl::flat_hash_map<OrderId, std::unique_ptr<Order>> order_store;
+    absl::flat_hash_map<Symbol, OrderBook> books;
     FillCallback on_fill;
 };
 
