@@ -20,7 +20,7 @@ def compare_latency(csv_files):
                     current_col = df.columns[0]
                 else:
                     current_col = latency_col
-                all_p999.append(df[current_col].quantile(0.999))
+                all_p999.append(df[current_col].quantile(0.9))
     
     x_limit = max(all_p999) if all_p999 else 2000
 
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python3 scripts/compare_impls.py <csv1> <csv2> ...")
         # Default fallback
-        files = ["latency_list.csv", "latency_vector.csv"]
+        files = ["latency_list.csv", "latency_vector.csv", "latency_f_vector.csv"]
     else:
         files = sys.argv[1:]
     
