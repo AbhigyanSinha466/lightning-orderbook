@@ -19,11 +19,16 @@ add_library(engine_core_vector STATIC ${ENGINE_CORE_VECTOR_SOURCES})
 target_include_directories(engine_core_vector PUBLIC vector_impl/include)
 
 # --- 3. ITCH PARSER ---
-# The parser is implementation-agnostic as types.hpp is identical
 file(GLOB_RECURSE ITCH_PARSER_SOURCES itch/src/*.cpp)
-add_library(itch_parser STATIC ${ITCH_PARSER_SOURCES})
-target_include_directories(itch_parser PUBLIC itch/include)
-target_link_libraries(itch_parser PRIVATE engine_core_list)
+
+# We create two parser libraries, one for each implementation
+add_library(itch_parser_list STATIC ${ITCH_PARSER_SOURCES})
+target_include_directories(itch_parser_list PUBLIC itch/include)
+target_link_libraries(itch_parser_list PRIVATE engine_core_list)
+
+add_library(itch_parser_vector STATIC ${ITCH_PARSER_SOURCES})
+target_include_directories(itch_parser_vector PUBLIC itch/include)
+target_link_libraries(itch_parser_vector PRIVATE engine_core_vector)
 
 # --- 4. BENCHMARKS ---
 file(GLOB_RECURSE BENCH_SOURCES bench/src/*.cpp)
@@ -31,16 +36,17 @@ file(GLOB_RECURSE BENCH_SOURCES bench/src/*.cpp)
 # Bench for List Implementation
 add_executable(bench_list ${BENCH_SOURCES})
 target_include_directories(bench_list PRIVATE bench/include list_impl/include)
-target_link_libraries(bench_list PRIVATE itch_parser engine_core_list)
+target_link_libraries(bench_list PRIVATE itch_parser_list engine_core_list)
 target_compile_options(bench_list PRIVATE -O3 -march=native -fno-exceptions -fno-rtti)
 
 # Bench for Vector Implementation
 add_executable(bench_vector ${BENCH_SOURCES})
 target_include_directories(bench_vector PRIVATE bench/include vector_impl/include)
-target_link_libraries(bench_vector PRIVATE itch_parser engine_core_vector)
+target_link_libraries(bench_vector PRIVATE itch_parser_vector engine_core_vector)
 target_compile_options(bench_vector PRIVATE -O3 -march=native -fno-exceptions -fno-rtti)
 
 # --- 5. TESTS ---
+enable_testing()
 include(FetchContent)
 FetchContent_Declare(
   Catch2
@@ -49,7 +55,22 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
+# Common test sources and support files
 file(GLOB_RECURSE TEST_SOURCES tests/*.cpp)
-add_executable(tests ${TEST_SOURCES} bench/src/latency_stats.cpp bench/src/cycle_clock.cpp)
-target_include_directories(tests PRIVATE bench/include list_impl/include)
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain itch_parser engine_core_list)
+set(TEST_SUPPORT_SOURCES bench/src/latency_stats.cpp bench/src/cycle_clock.cpp)
+
+# Helper function to create test targets
+function(add_engine_test target_name core_lib parser_lib include_dir)
+    add_executable(${target_name} ${TEST_SOURCES} ${TEST_SUPPORT_SOURCES})
+    target_include_directories(${target_name} PRIVATE itch/include bench/include ${include_dir})
+    target_link_libraries(${target_name} PRIVATE Catch2::Catch2WithMain ${parser_lib} ${core_lib})
+    
+    include(Catch)
+    catch_discover_tests(${target_name})
+endfunction()
+
+# Test List Implementation
+add_engine_test(test_list engine_core_list itch_parser_list list_impl/include)
+
+# Test Vector Implementation
+add_engine_test(test_vector engine_core_vector itch_parser_vector vector_impl/include)

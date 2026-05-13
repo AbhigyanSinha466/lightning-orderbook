@@ -25,7 +25,7 @@ struct Order {
     std::list<Order*>::iterator level_it;
 
     Order(OrderId id, Symbol symbol, Side side, OrderType type, Price price, Qty quantity, Timestamp timestamp)
-        : id(id), symbol(std::move(symbol)), side(side), type(type), price(price), quantity(quantity), timestamp(timestamp) {}
+        : id(id), symbol(symbol), side(side), type(type), price(price), quantity(quantity), timestamp(timestamp) {}
 };
 
 } // namespace engine

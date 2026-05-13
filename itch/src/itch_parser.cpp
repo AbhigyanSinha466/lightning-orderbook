@@ -14,10 +14,12 @@ T read_be(const uint8_t* data, size_t size = sizeof(T)) {
     return val;
 }
 
-uint64_t parse_symbol(const uint8_t* data) {
-    uint64_t val = 0;
-    std::memcpy(&val, data, 8);
-    return val;
+Symbol parse_symbol(const uint8_t* data) {
+    uint64_t hash = 0;
+    for (int i = 0; i < 8; ++i) {
+        hash = hash * 31 + data[i];
+    }
+    return hash;
 }
 } // namespace
 

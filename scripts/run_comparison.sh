@@ -14,11 +14,13 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target bench_list bench_vector
 
 # 3. Run benchmarks
-echo "Running List-based benchmark (requires sudo for Apple Silicon performance counters)..."
-sudo ./build/bench_list data/synthetic.itch latency_list.csv
 
 echo "Running Vector-based benchmark (requires sudo for Apple Silicon performance counters)..."
 sudo ./build/bench_vector data/synthetic.itch latency_vector.csv
+
+echo "Running List-based benchmark (requires sudo for Apple Silicon performance counters)..."
+sudo ./build/bench_list data/synthetic.itch latency_list.csv
+
 
 # 4. Compare results
 echo "Generating comparison plot..."

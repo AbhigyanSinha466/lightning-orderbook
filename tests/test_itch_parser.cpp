@@ -5,6 +5,18 @@
 using namespace engine;
 using namespace engine::itch;
 
+namespace {
+Symbol to_symbol(const std::string& s) {
+    std::string padded = s;
+    padded.resize(8, ' ');
+    uint64_t hash = 0;
+    for (int i = 0; i < 8; ++i) {
+        hash = hash * 31 + static_cast<uint8_t>(padded[i]);
+    }
+    return hash;
+}
+}
+
 TEST_CASE("ITCH Parser basic", "[itch]") {
     ItchParser parser;
     std::vector<AddOrderMsg> adds;
@@ -15,7 +27,6 @@ TEST_CASE("ITCH Parser basic", "[itch]") {
     parser.set_on_executed_order([&](const ExecutedOrderMsg& msg) { executions.push_back(msg); });
 
     // Mock Add Order message ('A')
-    // ... (rest of data remains same for 'A')
     // Length: 36 (0x0024)
     // Type: 'A' (0x41)
     // Locate: 0 (0x0000)
@@ -47,7 +58,7 @@ TEST_CASE("ITCH Parser basic", "[itch]") {
         CHECK(adds[0].id == 1);
         CHECK(adds[0].side == Side::Buy);
         CHECK(adds[0].quantity == 100);
-        CHECK(adds[0].symbol == "AAPL");
+        CHECK(adds[0].symbol == to_symbol("AAPL"));
         CHECK(adds[0].price == 150);
         CHECK(adds[0].timestamp == 123456789);
     }

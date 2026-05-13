@@ -71,3 +71,4 @@ Testing/
 .cache/
 
 *.csv
+.vscode

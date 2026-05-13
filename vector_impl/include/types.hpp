@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <array>
 
 namespace engine {
 
@@ -22,7 +23,7 @@ using Qty = uint32_t;
 using OrderId = uint64_t;
 
 /**
- * @brief Instrument symbol bit-packed into 8 bytes.
+ * @brief Instrument symbol. Hashed as uint64_t for O(1) comparison and lookup.
  */
 using Symbol = uint64_t;
 
