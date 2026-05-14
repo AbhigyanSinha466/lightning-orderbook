@@ -23,31 +23,30 @@ void MatchingEngine::submit_order(std::unique_ptr<Order> o) {
     // 4. Handle remaining quantity
     if (o->quantity > 0) {
         if (o->type == OrderType::Limit) {
-            OrderId id = o->id;
-            Order* ptr = o.get();
-            order_store[id] = std::move(o);
-            book.add_order(ptr);
-        } else {
-            // Market orders do not rest
-            // In a real system, we might emit a Cancel event here.
-            // For now, the unique_ptr will go out of scope and free the order.
+            // Allocate from pool and copy the transient order data
+            Order* pooled_order = order_pool.allocate(
+                o->id, o->symbol, o->side, o->type, o->price, o->quantity, o->timestamp
+            );
+            
+            order_store[pooled_order->id] = pooled_order;
+            book.add_order(pooled_order);
         }
     }
-    // 5. If fully filled, unique_ptr goes out of scope and deletes the order.
 }
 
 void MatchingEngine::cancel_order(OrderId id) {
     auto it = order_store.find(id);
     if (it == order_store.end()) {
-        return; // Silently ignore if not found
+        return; 
     }
 
-    Order* o = it->second.get();
+    Order* o = it->second;
     auto book_it = books.find(o->symbol);
     if (book_it != books.end()) {
         book_it->second.remove_order(o);
     }
 
+    order_pool.deallocate(o);
     order_store.erase(it);
 }
 
@@ -57,15 +56,17 @@ void MatchingEngine::reduce_order(OrderId id, Qty cancelled_qty) {
         return;
     }
 
-    Order* o = it->second.get();
+    Order* o = it->second;
     if (cancelled_qty >= o->quantity) {
-        cancel_order(id);
+        // Inline cancellation to avoid double lookup
+        auto book_it = books.find(o->symbol);
+        if (book_it != books.end()) {
+            book_it->second.remove_order(o);
+        }
+        order_pool.deallocate(o);
+        order_store.erase(it);
     } else {
         o->quantity -= cancelled_qty;
-        // No need to update the book/price level structure because:
-        // 1. Price is unchanged.
-        // 2. Position in list (time priority) is unchanged.
-        // 3. PriceLevel::total_quantity() computes on demand.
     }
 }
 
@@ -75,13 +76,19 @@ void MatchingEngine::replace_order(OrderId old_id, OrderId new_id, Price new_pri
         return;
     }
 
-    // Capture metadata from old order
-    Symbol symbol = it->second->symbol;
-    Side side = it->second->side;
+    Order* o = it->second;
+    Symbol symbol = o->symbol;
+    Side side = o->side;
     
-    cancel_order(old_id);
+    // Inline cancellation to avoid double lookup
+    auto book_it = books.find(symbol);
+    if (book_it != books.end()) {
+        book_it->second.remove_order(o);
+    }
+    order_pool.deallocate(o);
+    order_store.erase(it);
     
-    auto new_order = std::make_unique<Order>(new_id, std::move(symbol), side, OrderType::Limit, new_price, new_qty, new_ts);
+    auto new_order = std::make_unique<Order>(new_id, symbol, side, OrderType::Limit, new_price, new_qty, new_ts);
     submit_order(std::move(new_order));
 }
 
@@ -108,11 +115,13 @@ void MatchingEngine::match(Order* aggressive, OrderBook& book) {
 
         if (!can_match) break;
 
-        // Perform the trade
         Order* passive = level->front();
         Qty fill_qty = std::min(aggressive->quantity, passive->quantity);
 
         aggressive->quantity -= fill_qty;
+        
+        // Update price level's cumulative quantity
+        level->decrement_cumulative_qty(fill_qty);
         passive->quantity -= fill_qty;
 
         if (on_fill) {
@@ -123,6 +132,7 @@ void MatchingEngine::match(Order* aggressive, OrderBook& book) {
             OrderId passive_id = passive->id;
             book.remove_order(passive);
             order_store.erase(passive_id);
+            order_pool.deallocate(passive);
         }
     }
 }

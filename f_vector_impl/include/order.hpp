@@ -19,13 +19,13 @@ struct Order {
     Timestamp timestamp;
 
     /**
-     * @brief Iterator to the order's position in a PriceLevel's list.
-     * Cached to allow O(1) removal from the PriceLevel.
+     * @brief Pointers for intrusive doubly-linked list in PriceLevel.
      */
-    std::list<Order*>::iterator level_it;
+    Order* next = nullptr;
+    Order* prev = nullptr;
 
     Order(OrderId id, Symbol symbol, Side side, OrderType type, Price price, Qty quantity, Timestamp timestamp)
-        : id(id), symbol(std::move(symbol)), side(side), type(type), price(price), quantity(quantity), timestamp(timestamp) {}
+        : id(id), symbol(symbol), side(side), type(type), price(price), quantity(quantity), timestamp(timestamp) {}
 };
 
 } // namespace engine

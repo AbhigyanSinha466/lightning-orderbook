@@ -13,7 +13,17 @@
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <itch_binary_file>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <itch_binary_file> [output_csv_file]" << std::endl;
+        return 1;
+    }
+
+    std::string csv_filename = "latency_results.csv";
+    if (argc >= 3) {
+        csv_filename = argv[2];
+    }
+
+    if (!engine::bench::CycleClock::init()) {
+        std::cerr << "ERROR: Failed to initialize CycleClock. Did you run with sudo?" << std::endl;
         return 1;
     }
 
@@ -82,7 +92,7 @@ int main(int argc, char* argv[]) {
     }
 
     stats.report();
-    stats.dump_csv("latency_results.csv");
+    stats.dump_csv(csv_filename);
 
     munmap(addr, file_size);
     close(fd);

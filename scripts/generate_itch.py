@@ -130,13 +130,11 @@ class ITCHGenerator:
 
 if __name__ == "__main__":
     import os
-    data_dir = "../data"
+    data_dir = "data"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     
     output_file = os.path.join(data_dir, "synthetic.itch")
     gen = ITCHGenerator(output_file)
-    # Increased message count from 100,000 to 500,000 to ensure enough data 
-    # points are available for high-resolution histogram bins.
     gen.generate(500000)
     print(f"Generated 500000 ITCH messages to {output_file}")
