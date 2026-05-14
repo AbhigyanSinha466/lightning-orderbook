@@ -44,6 +44,9 @@ void LatencyStats::report() {
         return samples[std::min(idx, samples.size() - 1)];
     };
 
+    double ns_per_cycle = CycleClock::get_ns_per_cycle();
+    auto to_ns = [ns_per_cycle](uint64_t c) { return static_cast<double>(c) * ns_per_cycle; };
+
     std::cout << std::fixed << std::setprecision(2);
     std::cout << "\n------------------------------------------------\n";
     std::cout << " LATENCY STATISTICS (CPU Cycles)\n";

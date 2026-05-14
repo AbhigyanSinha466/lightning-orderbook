@@ -27,6 +27,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    if (!engine::bench::CycleClock::init()) {
+        std::cerr << "ERROR: Failed to initialize CycleClock. Did you run with sudo?" << std::endl;
+        return 1;
+    }
+
+    std::cerr << "Calibrating CycleClock..." << std::endl;
+    engine::bench::CycleClock::calibrate();
+
     const char* filename = argv[1];
     int fd = open(filename, O_RDONLY);
     if (fd == -1) {
