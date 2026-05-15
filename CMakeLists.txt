@@ -69,9 +69,16 @@ include(FetchContent)
 FetchContent_Declare(
   absl
   GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
-  GIT_TAG 20240116.1
+  GIT_TAG 20240722.0
 )
 set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
+
+if(APPLE AND NOT CMAKE_OSX_ARCHITECTURES)
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64" OR CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+    set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "Build for arm64" FORCE)
+  endif()
+endif()
+
 FetchContent_MakeAvailable(absl)
 
 FetchContent_Declare(

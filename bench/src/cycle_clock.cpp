@@ -1,6 +1,8 @@
 #include "cycle_clock.hpp"
 #include <dlfcn.h>
 #include <iostream>
+#include <chrono>
+#include <thread>
 
 namespace engine {
 namespace bench {
@@ -17,6 +19,7 @@ static kpc_set_thread_counting_t kpc_set_thread_counting = nullptr;
 static kpc_get_config_count_t kpc_get_config_count = nullptr;
 
 bool CycleClock::initialized = false;
+double CycleClock::cached_ns_per_cycle = 1.0;
 
 bool CycleClock::init() {
     if (initialized) return true;
@@ -47,6 +50,27 @@ bool CycleClock::init() {
 
     initialized = true;
     return true;
+}
+
+void CycleClock::calibrate() {
+    auto start_ns = std::chrono::high_resolution_clock::now();
+    uint64_t start_cycles = get_cycles();
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    
+    auto end_ns = std::chrono::high_resolution_clock::now();
+    uint64_t end_cycles = get_cycles();
+    
+    auto duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end_ns - start_ns).count();
+    uint64_t delta_cycles = end_cycles - start_cycles;
+    
+    if (delta_cycles > 0) {
+        cached_ns_per_cycle = static_cast<double>(duration_ns) / delta_cycles;
+    }
+}
+
+double CycleClock::ns_per_cycle() {
+    return cached_ns_per_cycle;
 }
 
 uint64_t CycleClock::get_cycles() {

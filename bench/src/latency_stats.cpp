@@ -44,22 +44,22 @@ void LatencyStats::report() {
         return samples[std::min(idx, samples.size() - 1)];
     };
 
-    double ns_per_cycle = CycleClock::get_ns_per_cycle();
+    double ns_per_cycle = CycleClock::ns_per_cycle();
     auto to_ns = [ns_per_cycle](uint64_t c) { return static_cast<double>(c) * ns_per_cycle; };
 
     std::cout << std::fixed << std::setprecision(2);
     std::cout << "\n------------------------------------------------\n";
-    std::cout << " LATENCY STATISTICS (CPU Cycles)\n";
+    std::cout << " LATENCY STATISTICS (CPU Cycles & Nanoseconds)\n";
     std::cout << "------------------------------------------------\n";
     std::cout << std::left << std::setw(20) << "Count:" << samples.size() << "\n";
-    std::cout << std::left << std::setw(20) << "Min:" << samples.front() << " cycles\n";
-    std::cout << std::left << std::setw(20) << "Max:" << samples.back() << " cycles\n";
-    std::cout << std::left << std::setw(20) << "Mean:" << mean << " cycles\n";
-    std::cout << std::left << std::setw(20) << "50th (Median):" << percentile(50) << " cycles\n";
-    std::cout << std::left << std::setw(20) << "90th:" << percentile(90) << " cycles\n";
-    std::cout << std::left << std::setw(20) << "95th:" << percentile(95) << " cycles\n";
-    std::cout << std::left << std::setw(20) << "99th:" << percentile(99) << " cycles\n";
-    std::cout << std::left << std::setw(20) << "99.9th:" << percentile(99.9) << " cycles\n";
+    std::cout << std::left << std::setw(20) << "Min:" << samples.front() << " cycles (" << to_ns(samples.front()) << " ns)\n";
+    std::cout << std::left << std::setw(20) << "Max:" << samples.back() << " cycles (" << to_ns(samples.back()) << " ns)\n";
+    std::cout << std::left << std::setw(20) << "Mean:" << mean << " cycles (" << to_ns(static_cast<uint64_t>(mean)) << " ns)\n";
+    std::cout << std::left << std::setw(20) << "50th (Median):" << percentile(50) << " cycles (" << to_ns(percentile(50)) << " ns)\n";
+    std::cout << std::left << std::setw(20) << "90th:" << percentile(90) << " cycles (" << to_ns(percentile(90)) << " ns)\n";
+    std::cout << std::left << std::setw(20) << "95th:" << percentile(95) << " cycles (" << to_ns(percentile(95)) << " ns)\n";
+    std::cout << std::left << std::setw(20) << "99th:" << percentile(99) << " cycles (" << to_ns(percentile(99)) << " ns)\n";
+    std::cout << std::left << std::setw(20) << "99.9th:" << percentile(99.9) << " cycles (" << to_ns(percentile(99.9)) << " ns)\n";
     std::cout << "------------------------------------------------\n" << std::endl;
 }
 
