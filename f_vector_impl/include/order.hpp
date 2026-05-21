@@ -9,7 +9,7 @@ namespace engine {
  * @brief Order represents a single order in the system.
  * It is a plain data struct used as a container.
  */
-struct Order {
+struct alignas(64) Order {
     OrderId id;
     Symbol symbol;
     Side side;

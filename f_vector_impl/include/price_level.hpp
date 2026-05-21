@@ -9,7 +9,7 @@ namespace engine {
  * @brief PriceLevel represents all resting orders at a single price point on one side of the book.
  * It does not own the Order objects.
  */
-class PriceLevel {
+class alignas(64) PriceLevel {
 public:
     PriceLevel() : head(nullptr), tail(nullptr) {}
 

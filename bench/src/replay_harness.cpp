@@ -15,7 +15,11 @@ ReplayHarness::ReplayHarness(MatchingEngine& engine, itch::ItchParser& parser, L
 
 void ReplayHarness::on_add(const itch::AddOrderMsg& msg) {
     auto start = CycleClock::get_cycles();
+#ifdef IS_F_VECTOR_IMPL
+    engine.submit_order(Order(msg.id, msg.symbol, msg.side, OrderType::Limit, msg.price, msg.quantity, msg.timestamp));
+#else
     engine.submit_order(std::make_unique<Order>(msg.id, msg.symbol, msg.side, OrderType::Limit, msg.price, msg.quantity, msg.timestamp));
+#endif
     auto end = CycleClock::get_cycles();
     stats.add_sample(end - start);
 }

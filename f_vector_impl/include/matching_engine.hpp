@@ -1,5 +1,7 @@
 #pragma once
 
+#define IS_F_VECTOR_IMPL 1
+
 #include "order_book.hpp"
 #include <memory>
 #include <functional>
@@ -24,10 +26,9 @@ public:
     /**
      * @brief Submits a new order to the engine.
      * Takes ownership of the order if it rests on the book.
-     * @param o Pointer to the order (newly allocated).
-     * @note Now expects a std::unique_ptr for transient orders, but will move them to the pool if they rest.
+     * @param o Order object by value.
      */
-    void submit_order(std::unique_ptr<Order> o);
+    void submit_order(Order o);
 
     /**
      * @brief Cancels an existing order by its ID.
@@ -36,27 +37,26 @@ public:
 
     /**
      * @brief Reduces the quantity of an existing order.
-     * If the quantity reaches zero, the order is removed.
      */
     void reduce_order(OrderId id, Qty cancelled_qty);
 
     /**
-     * @brief Replaces an existing order with new price/quantity and resets time priority.
+     * @brief Replaces an existing order with a new one.
      */
     void replace_order(OrderId old_id, OrderId new_id, Price new_price, Qty new_qty, Timestamp new_ts);
 
 private:
     /**
-     * @brief Internal matching loop.
-     * @param aggressive The incoming order.
-     * @param book The order book for the aggressive order's symbol.
+     * @brief Internal matching logic.
      */
     void match(Order* aggressive, OrderBook& book);
 
-    // order_store now stores raw pointers managed by order_pool
-    absl::flat_hash_map<OrderId, Order*> order_store;
     absl::flat_hash_map<Symbol, OrderBook> books;
+    absl::flat_hash_map<OrderId, Order*> order_store;
+    
+    // Custom memory pool for orders
     utils::OrderPool order_pool;
+    
     FillCallback on_fill;
 };
 
