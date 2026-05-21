@@ -27,4 +27,5 @@ sudo ./build/bench_f_vector data/synthetic.itch latency_f_vector.csv
 
 # 4. Compare results
 echo "Generating comparison plot..."
+sudo rm -f comparison_results.png
 python3 scripts/compare_impls.py latency_list.csv latency_vector.csv latency_f_vector.csv

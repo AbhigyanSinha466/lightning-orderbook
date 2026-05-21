@@ -49,7 +49,8 @@ private:
             bool popped = false;
             while (trades_queue_.pop(fill)) {
                 popped = true;
-                outfile << "Trade: Passive=" << fill.passive_id 
+                outfile << "Trade: Timestamp=" << fill.timestamp
+                        << " Passive=" << fill.passive_id 
                         << " Aggressive=" << fill.aggressive_id 
                         << " Price=" << fill.fill_price 
                         << " Qty=" << fill.fill_qty << "\n";
@@ -61,7 +62,8 @@ private:
         }
         // Drain the queue before exiting
         while (trades_queue_.pop(fill)) {
-            outfile << "Trade: Passive=" << fill.passive_id 
+            outfile << "Trade: Timestamp=" << fill.timestamp
+                    << " Passive=" << fill.passive_id 
                     << " Aggressive=" << fill.aggressive_id 
                     << " Price=" << fill.fill_price 
                     << " Qty=" << fill.fill_qty << "\n";

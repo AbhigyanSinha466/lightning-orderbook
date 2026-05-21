@@ -3,6 +3,7 @@
 #include "replay_harness.hpp"
 #include "latency_stats.hpp"
 #include "cycle_clock.hpp"
+#include "utils/logger.hpp"
 #include <iostream>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -66,8 +67,9 @@ int main(int argc, char* argv[]) {
 
     // Track total fills for the report
     size_t fill_count = 0;
-    engine.set_on_fill([&](const engine::FillEvent&) {
+    engine.set_on_fill([&](const engine::FillEvent& fill) {
         fill_count++;
+        engine::utils::log_trade(fill);
     });
 
     std::cerr << "Starting replay of " << file_size << " bytes..." << std::endl;
