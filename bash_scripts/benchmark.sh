@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 # 1. Build the project (Release mode for accurate benchmarks)
 echo -e "${GREEN}Building project in Release mode...${NC}"
 cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target bench
+sudo cmake --build build --target bench
 
 # 2. Check for ITCH data file
 if [ ! -f "$DEFAULT_ITCH_FILE" ]; then
@@ -35,7 +35,7 @@ fi
 
 # 3. Run the benchmark
 echo -e "\n${GREEN}Starting benchmark...${NC}"
-./build/bench "$DEFAULT_ITCH_FILE"
+sudo ./build/bench "$DEFAULT_ITCH_FILE"
 
 # 4. Generate the plot
 if [ -f "latency_results.csv" ]; then

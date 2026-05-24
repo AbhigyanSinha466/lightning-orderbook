@@ -81,7 +81,7 @@ void MatchingEngine::replace_order(OrderId old_id, OrderId new_id, Price new_pri
     
     cancel_order(old_id);
     
-    auto new_order = std::make_unique<Order>(new_id, std::move(symbol), side, OrderType::Limit, new_price, new_qty, new_ts);
+    auto new_order = std::make_unique<Order>(new_id, symbol, side, OrderType::Limit, new_price, new_qty, new_ts);
     submit_order(std::move(new_order));
 }
 

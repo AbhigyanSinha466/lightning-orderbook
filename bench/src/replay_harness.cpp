@@ -1,4 +1,5 @@
 #include "replay_harness.hpp"
+#include "cycle_clock.hpp"
 
 namespace engine {
 namespace bench {
@@ -13,38 +14,42 @@ ReplayHarness::ReplayHarness(MatchingEngine& engine, itch::ItchParser& parser, L
 }
 
 void ReplayHarness::on_add(const itch::AddOrderMsg& msg) {
-    auto start = Clock::now();
+    auto start = CycleClock::get_cycles();
+#ifdef IS_F_VECTOR_IMPL
+    engine.submit_order(Order(msg.id, msg.symbol, msg.side, OrderType::Limit, msg.price, msg.quantity, msg.timestamp));
+#else
     engine.submit_order(std::make_unique<Order>(msg.id, msg.symbol, msg.side, OrderType::Limit, msg.price, msg.quantity, msg.timestamp));
-    auto end = Clock::now();
-    stats.add_sample(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count());
+#endif
+    auto end = CycleClock::get_cycles();
+    stats.add_sample(end - start);
 }
 
 void ReplayHarness::on_replace(const itch::ReplaceOrderMsg& msg) {
-    auto start = Clock::now();
+    auto start = CycleClock::get_cycles();
     engine.replace_order(msg.old_id, msg.new_id, msg.new_price, msg.new_quantity, msg.timestamp);
-    auto end = Clock::now();
-    stats.add_sample(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count());
+    auto end = CycleClock::get_cycles();
+    stats.add_sample(end - start);
 }
 
 void ReplayHarness::on_delete(const itch::DeleteOrderMsg& msg) {
-    auto start = Clock::now();
+    auto start = CycleClock::get_cycles();
     engine.cancel_order(msg.id);
-    auto end = Clock::now();
-    stats.add_sample(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count());
+    auto end = CycleClock::get_cycles();
+    stats.add_sample(end - start);
 }
 
 void ReplayHarness::on_cancel(const itch::CancelOrderMsg& msg) {
-    auto start = Clock::now();
+    auto start = CycleClock::get_cycles();
     engine.reduce_order(msg.id, msg.cancelled_quantity);
-    auto end = Clock::now();
-    stats.add_sample(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count());
+    auto end = CycleClock::get_cycles();
+    stats.add_sample(end - start);
 }
 
 void ReplayHarness::on_executed(const itch::ExecutedOrderMsg& msg) {
-    auto start = Clock::now();
+    auto start = CycleClock::get_cycles();
     engine.reduce_order(msg.id, msg.executed_quantity);
-    auto end = Clock::now();
-    stats.add_sample(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count());
+    auto end = CycleClock::get_cycles();
+    stats.add_sample(end - start);
 }
 
 } // namespace bench

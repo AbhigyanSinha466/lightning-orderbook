@@ -3,7 +3,6 @@
 #include "itch_parser.hpp"
 #include "matching_engine.hpp"
 #include "latency_stats.hpp"
-#include <chrono>
 
 namespace engine {
 namespace bench {
@@ -24,8 +23,6 @@ private:
     MatchingEngine& engine;
     itch::ItchParser& parser;
     LatencyStats& stats;
-
-    using Clock = std::chrono::high_resolution_clock;
 
     void on_add(const itch::AddOrderMsg& msg);
     void on_replace(const itch::ReplaceOrderMsg& msg);
