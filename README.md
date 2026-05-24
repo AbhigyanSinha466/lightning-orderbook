@@ -107,9 +107,9 @@ To compare the implementations, use the provided automated script. This will gen
 ```
 
 ### Understanding the Results
-- **P50 (Median)**: Represents the typical latency for a message. Significant improvements here indicate better cache locality and faster data structure traversal.
-- **P90/P99 (Tail Latency)**: Indicates how the engine handles bursts or complex scenarios (e.g., large order cancellations). The `f_vector_impl` should show significantly smaller tails due to the pre-allocated `OrderPool`.
-- **Distribution Shape**: A narrow, left-shifted peak indicates more deterministic and faster performance.
+- **P50 (Median)**: Represents the typical latency for a message. The `f_vector_impl` shows a massive improvement here (a sharp, left-shifted peak) due to superior cache locality and the avoidance of per-message `new`/`delete` allocations.
+- **P90/P99 (Tail Latency)**: Indicates how the engine handles bursts. Counter-intuitively, the `f_vector_impl` can exhibit a **longer tail** (visible as a flat line extending to the right). This is an artifact of the `OrderPool`'s memory management: when the pre-allocated arena exhausts its capacity, it must synchronously allocate a massive new block of memory, causing a significant latency spike for the unlucky message that triggered the expansion. 
+- **Distribution Shape**: A narrow, high peak (like the green `f_vector` plot) indicates highly deterministic performance for the vast majority of operations, even if the absolute maximum latency is occasionally higher.
 
 ---
 
