@@ -87,12 +87,12 @@ To understand memory access patterns and cache efficiency:
 - **Cachegrind**: Simulates L1/L2 caches to identify exactly which lines of code cause cache misses.
   ```bash
   valgrind --tool=cachegrind ./build/bench_f_vector data/synthetic.itch
-  cg_annotate cachegrind.out.<pid>
+  cg_annotate cachegrind.out.*
   ```
 - **Massif**: Profiles heap memory usage over time to ensure the `OrderPool` is behaving as expected.
   ```bash
   valgrind --tool=massif ./build/bench_f_vector data/synthetic.itch
-  ms_print massif.out.<pid>
+  ms_print massif.out.*
   ```
 
 ---
