@@ -1,15 +1,24 @@
 #include "cycle_clock.hpp"
-#include <dlfcn.h>
 #include <iostream>
 #include <chrono>
 #include <thread>
 
+#ifdef __APPLE__
+#include <dlfcn.h>
+#elif defined(__linux__) && (defined(__x86_64__) || defined(__i386__))
+#include <x86intrin.h>
+#endif
+
 namespace engine {
 namespace bench {
 
+bool CycleClock::initialized = false;
+double CycleClock::cached_ns_per_cycle = 1.0;
+
+#ifdef __APPLE__
+
 #define KPC_CLASS_FIXED_MASK (1 << 0)
 
-// kpc_get_thread_counters(int tid, uint32_t *inoutcount, uint64_t *buf)
 typedef int (*kpc_get_thread_counters_t)(int, uint32_t *, uint64_t *);
 typedef int (*kpc_set_thread_counting_t)(uint32_t classes);
 typedef uint32_t (*kpc_get_config_count_t)(uint32_t classes);
@@ -17,9 +26,6 @@ typedef uint32_t (*kpc_get_config_count_t)(uint32_t classes);
 static kpc_get_thread_counters_t kpc_get_thread_counters = nullptr;
 static kpc_set_thread_counting_t kpc_set_thread_counting = nullptr;
 static kpc_get_config_count_t kpc_get_config_count = nullptr;
-
-bool CycleClock::initialized = false;
-double CycleClock::cached_ns_per_cycle = 1.0;
 
 bool CycleClock::init() {
     if (initialized) return true;
@@ -52,7 +58,42 @@ bool CycleClock::init() {
     return true;
 }
 
+uint64_t CycleClock::get_cycles() {
+    if (!initialized) return 0;
+
+    uint32_t count = 2;
+    uint64_t counters[2];
+    if (kpc_get_thread_counters(0, &count, counters) == 0) {
+        return counters[0];
+    }
+    return 0;
+}
+
+#else
+
+// Linux / Generic Implementation
+bool CycleClock::init() {
+    initialized = true;
+    return true;
+}
+
+uint64_t CycleClock::get_cycles() {
+#if defined(__linux__) && (defined(__x86_64__) || defined(__i386__))
+    return __rdtsc();
+#elif defined(__aarch64__)
+    uint64_t val;
+    asm volatile("mrs %0, cntvct_el0" : "=r" (val));
+    return val;
+#else
+    return __builtin_readcyclecounter();
+#endif
+}
+
+#endif // __APPLE__
+
 void CycleClock::calibrate() {
+    if (!initialized) return;
+
     auto start_ns = std::chrono::high_resolution_clock::now();
     uint64_t start_cycles = get_cycles();
     
@@ -71,17 +112,6 @@ void CycleClock::calibrate() {
 
 double CycleClock::ns_per_cycle() {
     return cached_ns_per_cycle;
-}
-
-uint64_t CycleClock::get_cycles() {
-    if (!initialized) return 0;
-
-    uint32_t count = 2;
-    uint64_t counters[2];
-    if (kpc_get_thread_counters(0, &count, counters) == 0) {
-        return counters[0];
-    }
-    return 0;
 }
 
 } // namespace bench
